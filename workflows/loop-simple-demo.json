@@ -1,0 +1,46 @@
+{
+  "id": "loop-simple-demo",
+  "name": "Loop Simple Demo",
+  "description": "Simple loop test - iterate over input array and echo each item",
+  "version": "1.0.0",
+  "tags": ["demo", "loop"],
+  "variables": {},
+  "input": [
+    {
+      "key": "items",
+      "type": "array",
+      "description": "Array of items to process",
+      "example": ["apple", "banana", "cherry"]
+    }
+  ],
+  "stages": [
+    {
+      "name": "foreach-item",
+      "type": "loop",
+      "sourceExpression": "$.items",
+      "itemVar": "item",
+      "indexVar": "index",
+      "executionMode": "parallel",
+      "concurrency": 3
+    },
+    {
+      "name": "echo-item",
+      "image": "alpine:latest",
+      "command": ["sh", "-c", "echo \"Processing item #{{loop.index}}: {{loop.item}}\" && echo \"{{loop.item}}\" > /data/result-{{loop.index}}.txt"],
+      "produces": [
+        {
+          "key": "result",
+          "type": "file",
+          "path": "/data/result-{{loop.index}}.txt"
+        }
+      ],
+      "timeout": 30
+    }
+  ],
+  "outputs": [
+    {
+      "name": "output",
+      "exports": []
+    }
+  ]
+}

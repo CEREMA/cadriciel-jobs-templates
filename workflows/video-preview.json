@@ -1,0 +1,57 @@
+{
+  "id": "video-preview",
+  "name": "video-preview",
+  "description": "Analyse une vidéo: extrait les métadonnées, crée une miniature et un GIF animé",
+  "icon": "video",
+  "input": [
+    { "key": "video", "type": "file", "description": "Vidéo à analyser (MP4, MOV, etc.)" }
+  ],
+  "stages": [
+    {
+      "name": "probe-video",
+      "image": "linuxserver/ffmpeg:latest",
+      "command": ["sh", "-c", "ffprobe -v quiet -print_format json -show_format -show_streams /data/video.* > /data/probe.json"],
+      "produces": [
+        { "key": "probe", "type": "file", "path": "/data/probe.json" }
+      ]
+    },
+    [
+      {
+        "name": "extract-thumbnail",
+        "image": "linuxserver/ffmpeg:latest",
+        "command": ["sh", "-c", "ffmpeg -i /data/video.* -ss 00:00:02 -vframes 1 -vf scale=480:-1 /data/thumbnail.jpg"],
+        "produces": [
+          { "key": "thumbnail", "type": "file", "path": "/data/thumbnail.jpg" }
+        ]
+      },
+      {
+        "name": "create-gif",
+        "image": "linuxserver/ffmpeg:latest",
+        "command": ["sh", "-c", "ffmpeg -i /data/video.* -ss 00:00:01 -t 3 -vf \"fps=10,scale=320:-1:flags=lanczos\" -loop 0 /data/preview.gif"],
+        "produces": [
+          { "key": "preview_gif", "type": "file", "path": "/data/preview.gif" }
+        ]
+      }
+    ],
+    {
+      "name": "build-manifest",
+      "type": "transform",
+      "runtime": "bun",
+      "code": "async function transform(input, context) {\n  const originalName = input.files?.[0]?.originalName || 'video';\n  const fileSize = input.files?.[0]?.size || 0;\n  \n  // Formater la taille\n  const formatSize = (bytes) => {\n    if (bytes < 1024) return bytes + ' B';\n    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';\n    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';\n  };\n  \n  return {\n    id: context.executionId,\n    processedAt: new Date().toISOString(),\n    source: {\n      filename: originalName,\n      size: formatSize(fileSize),\n      sizeBytes: fileSize\n    },\n    outputs: {\n      thumbnail: {\n        path: `executions/${context.executionId}/thumbnail.jpg`,\n        description: 'Image extraite à 2 secondes'\n      },\n      preview: {\n        path: `executions/${context.executionId}/preview.gif`,\n        description: 'GIF animé de 3 secondes (10 fps)'\n      }\n    },\n    status: 'success'\n  };\n}",
+      "produces": [
+        { "key": "manifest", "type": "json" }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "output",
+      "exports": [
+        { "key": "manifest", "from": "build-manifest.manifest", "type": "json" },
+        { "key": "thumbnail", "from": "extract-thumbnail.thumbnail", "type": "file" },
+        { "key": "preview", "from": "create-gif.preview_gif", "type": "file" },
+        { "key": "probe", "from": "probe-video.probe", "type": "file" }
+      ]
+    }
+  ]
+}

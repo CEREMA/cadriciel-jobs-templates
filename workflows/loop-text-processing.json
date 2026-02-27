@@ -1,0 +1,69 @@
+{
+  "id": "loop-text-processing",
+  "name": "Loop Demo - Text Processing",
+  "description": "Simple demo showing loop iteration over text items",
+  "version": "1.0.0",
+  "tags": ["demo", "loop", "text"],
+  "variables": {
+    "prefix": "Processed"
+  },
+  "input": [
+    {
+      "key": "items",
+      "type": "array",
+      "description": "Array of text items to process",
+      "example": ["apple", "banana", "cherry", "date", "elderberry"]
+    }
+  ],
+  "stages": [
+    {
+      "name": "init",
+      "type": "transform",
+      "runtime": "bun",
+      "code": "async function transform(input, context) {\n  console.log('Starting loop demo with', input.items?.length || 0, 'items');\n  return {\n    items: input.items || ['default-item-1', 'default-item-2'],\n    startedAt: new Date().toISOString()\n  };\n}"
+    },
+    {
+      "name": "foreach-item",
+      "type": "loop",
+      "sourceExpression": "$.init.items",
+      "itemVar": "item",
+      "indexVar": "index",
+      "executionMode": "sequential",
+      "concurrency": 1
+    },
+    {
+      "name": "process-item",
+      "image": "alpine:latest",
+      "command": ["sh", "-c", "echo \"{{vars.prefix}} #{{loop.index}}: {{loop.item}}\" | tee /data/result-{{loop.index}}.txt"],
+      "produces": [
+        {
+          "key": "result",
+          "type": "file",
+          "path": "/data/result-{{loop.index}}.txt"
+        }
+      ],
+      "timeout": 30
+    },
+    {
+      "name": "aggregate",
+      "type": "transform",
+      "runtime": "bun",
+      "code": "async function transform(input, context) {\n  const loopResults = context.steps['foreach-item']?.results || [];\n  \n  return {\n    totalProcessed: loopResults.length,\n    completedAt: new Date().toISOString(),\n    duration: Date.now() - new Date(context.steps.init?.produces?.startedAt || Date.now()).getTime(),\n    results: loopResults.map((r, i) => ({\n      index: i,\n      output: r.produces?.result\n    }))\n  };\n}"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "output",
+      "exports": [
+        {
+          "key": "totalProcessed",
+          "source": "aggregate.totalProcessed"
+        },
+        {
+          "key": "results",
+          "source": "aggregate.results"
+        }
+      ]
+    }
+  ]
+}

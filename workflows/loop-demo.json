@@ -1,0 +1,54 @@
+{
+  "id": "loop-demo",
+  "name": "Loop Demo - Image Resizer",
+  "description": "Demonstrates loop functionality by resizing multiple images in parallel",
+  "version": "1.0.0",
+  "tags": ["demo", "loop", "images"],
+  "variables": {
+    "outputWidth": 400,
+    "outputHeight": 400,
+    "outputFormat": "jpg"
+  },
+  "input": [
+    {
+      "key": "images",
+      "type": "array",
+      "description": "Array of image URLs to process",
+      "example": [
+        "https://picsum.photos/800/600",
+        "https://picsum.photos/1200/900",
+        "https://picsum.photos/640/480"
+      ]
+    }
+  ],
+  "stages": [
+    {
+      "name": "process-images",
+      "type": "loop",
+      "sourceExpression": "$.images",
+      "itemVar": "imageUrl",
+      "indexVar": "i",
+      "executionMode": "parallel",
+      "concurrency": 3
+    },
+    {
+      "name": "resize-image",
+      "image": "jrottenberg/ffmpeg:5-alpine",
+      "command": ["sh", "-c", "apk add --no-cache imagemagick curl >/dev/null 2>&1 && curl -sL \"{{loop.imageUrl}}\" -o /tmp/input.jpg && convert /tmp/input.jpg -resize {{vars.outputWidth}}x{{vars.outputHeight}} /data/resized-{{loop.i}}.jpg && echo \"Resized image {{loop.i}}\""],
+      "produces": [
+        {
+          "key": "resized",
+          "type": "file",
+          "path": "/data/resized-{{loop.i}}.jpg"
+        }
+      ],
+      "timeout": 120
+    }
+  ],
+  "outputs": [
+    {
+      "name": "output",
+      "exports": []
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "id": "loop-parallel-api",
+  "name": "Loop Demo - Parallel API Calls",
+  "description": "Demonstrates parallel loop execution with API calls",
+  "version": "1.0.0",
+  "tags": ["demo", "loop", "api", "parallel"],
+  "variables": {
+    "apiBaseUrl": "https://jsonplaceholder.typicode.com",
+    "maxConcurrency": 3
+  },
+  "input": [
+    {
+      "key": "userIds",
+      "type": "array",
+      "description": "Array of user IDs to fetch",
+      "example": [1, 2, 3, 4, 5]
+    }
+  ],
+  "stages": [
+    {
+      "name": "prepare",
+      "type": "transform",
+      "runtime": "bun",
+      "code": "async function transform(input, context) {\n  const userIds = input.userIds || [1, 2, 3];\n  console.log(`Will fetch ${userIds.length} users in parallel (max ${context.vars.maxConcurrency} concurrent)`);\n  \n  return {\n    userIds: userIds,\n    apiUrl: context.vars.apiBaseUrl\n  };\n}"
+    },
+    {
+      "name": "fetch-users",
+      "type": "loop",
+      "sourceExpression": "$.prepare.userIds",
+      "itemVar": "userId",
+      "indexVar": "i",
+      "executionMode": "parallel",
+      "concurrency": 3
+    },
+    {
+      "name": "fetch-user-data",
+      "image": "curlimages/curl:latest",
+      "command": ["sh", "-c", "curl -s {{vars.apiBaseUrl}}/users/{{loop.userId}} > /data/user-{{loop.userId}}.json && cat /data/user-{{loop.userId}}.json"],
+      "produces": [
+        {
+          "key": "userData",
+          "type": "file",
+          "path": "/data/user-{{loop.userId}}.json"
+        }
+      ],
+      "timeout": 30
+    },
+    {
+      "name": "merge-results",
+      "type": "transform",
+      "runtime": "bun",
+      "code": "async function transform(input, context) {\n  const loopResults = context.steps['fetch-users']?.results || [];\n  \n  // Parse all user data\n  const users = loopResults\n    .map(r => {\n      try {\n        return JSON.parse(r.logs || '{}');\n      } catch {\n        return null;\n      }\n    })\n    .filter(Boolean);\n  \n  console.log(`Successfully fetched ${users.length} users`);\n  \n  return {\n    count: users.length,\n    users: users.map(u => ({\n      id: u.id,\n      name: u.name,\n      email: u.email,\n      company: u.company?.name\n    }))\n  };\n}"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "output",
+      "exports": [
+        {
+          "key": "userCount",
+          "source": "merge-results.count"
+        },
+        {
+          "key": "users",
+          "source": "merge-results.users"
+        }
+      ]
+    }
+  ]
+}

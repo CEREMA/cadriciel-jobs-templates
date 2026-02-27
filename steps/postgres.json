@@ -1,0 +1,59 @@
+{
+  "id": "postgres",
+  "name": "PostgreSQL",
+  "description": "PostgreSQL database operations using psql client",
+  "image": "postgres:16-alpine",
+  "icon": "database",
+  "color": "#336791",
+  "env": {
+    "PGHOST": "",
+    "PGPORT": "5432",
+    "PGDATABASE": "",
+    "PGUSER": "",
+    "PGPASSWORD": ""
+  },
+  "defaultCommands": ["psql -c 'SELECT version();'"],
+  "examples": [
+    {
+      "name": "Check connection",
+      "command": "psql -c 'SELECT version();'"
+    },
+    {
+      "name": "List tables",
+      "command": "psql -c '\\dt'"
+    },
+    {
+      "name": "Execute SQL file",
+      "command": "psql -f /data/query.sql"
+    },
+    {
+      "name": "Run SELECT query",
+      "command": "psql -c 'SELECT * FROM users LIMIT 10;'"
+    },
+    {
+      "name": "Export to CSV",
+      "command": "psql -c \"COPY (SELECT * FROM users) TO STDOUT WITH CSV HEADER\" > /data/export.csv"
+    },
+    {
+      "name": "Import CSV",
+      "command": "psql -c \"COPY users FROM '/data/import.csv' WITH CSV HEADER\""
+    },
+    {
+      "name": "Run query with variables",
+      "command": "psql -v table_name='users' -c 'SELECT * FROM :table_name;'"
+    },
+    {
+      "name": "Dump database",
+      "command": "pg_dump > /data/backup.sql"
+    },
+    {
+      "name": "Dump specific table",
+      "command": "pg_dump -t users > /data/users_backup.sql"
+    },
+    {
+      "name": "Restore from dump",
+      "command": "psql < /data/backup.sql"
+    }
+  ],
+  "produces": []
+}

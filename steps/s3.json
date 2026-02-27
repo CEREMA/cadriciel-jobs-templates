@@ -1,0 +1,53 @@
+{
+  "id": "s3",
+  "name": "AWS S3",
+  "description": "AWS S3 operations (ls, cp, mv, sync, rm, etc.) using AWS CLI",
+  "image": "amazon/aws-cli:latest",
+  "icon": "cloud",
+  "color": "#ff9900",
+  "env": {
+    "AWS_ACCESS_KEY_ID": "",
+    "AWS_SECRET_ACCESS_KEY": "",
+    "AWS_DEFAULT_REGION": "eu-west-3"
+  },
+  "defaultCommands": ["s3 ls"],
+  "examples": [
+    {
+      "name": "List bucket contents",
+      "command": "s3 ls s3://my-bucket/"
+    },
+    {
+      "name": "Copy file to S3",
+      "command": "s3 cp /data/file.txt s3://my-bucket/path/"
+    },
+    {
+      "name": "Copy file from S3",
+      "command": "s3 cp s3://my-bucket/path/file.txt /data/"
+    },
+    {
+      "name": "Sync local to S3",
+      "command": "s3 sync /data/ s3://my-bucket/backup/"
+    },
+    {
+      "name": "Sync S3 to local",
+      "command": "s3 sync s3://my-bucket/data/ /data/"
+    },
+    {
+      "name": "Remove file from S3",
+      "command": "s3 rm s3://my-bucket/path/file.txt"
+    },
+    {
+      "name": "Remove folder recursively",
+      "command": "s3 rm s3://my-bucket/path/ --recursive"
+    },
+    {
+      "name": "Move/rename file",
+      "command": "s3 mv s3://my-bucket/old.txt s3://my-bucket/new.txt"
+    },
+    {
+      "name": "Copy with metadata",
+      "command": "s3 cp /data/file.txt s3://my-bucket/ --content-type 'application/json'"
+    }
+  ],
+  "produces": []
+}

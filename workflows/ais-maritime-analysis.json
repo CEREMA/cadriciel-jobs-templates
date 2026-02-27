@@ -1,0 +1,30 @@
+{
+  "id": "ais-maritime-analysis",
+  "name": "AIS Maritime Analysis",
+  "description": "Process AIS vessel tracking data to generate maritime traffic maps and analysis",
+  "icon": "map",
+  "input": [
+    { "key": "ais_data", "type": "file", "filename": "data.csv", "description": "AIS data file (CSV format)" },
+    { "key": "config", "type": "file", "filename": "job.xml", "description": "Envigis XML configuration file" }
+  ],
+  "stages": [
+    {
+      "name": "process_ais",
+      "image": "cerema/envisaas:latest",
+      "command": ["sh", "-c", "ls -la /data/ && /opt/envigis/envigis-cli -i /data/job.xml"],
+      "produces": [
+        { "key": "map", "type": "file", "path": "/data/output.png" },
+        { "key": "result", "type": "file", "path": "/data/output.csv" }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "output",
+      "exports": [
+        { "key": "map", "from": "process_ais.map", "type": "file", "path": "/data/output.png" },
+        { "key": "result", "from": "process_ais.result", "type": "file", "path": "/data/output.csv" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "envisaas",
+  "name": "Envisaas (Envigis)",
+  "description": "Geospatial AIS maritime data processing and visualization",
+  "image": "cerema/envisaas:latest",
+  "icon": "map",
+  "color": "#0ea5e9",
+  "defaultCommands": ["envigis-cli -i /data/job.xml"],
+  "produces": [
+    { "key": "map", "type": "file", "path": "/data/output.png" },
+    { "key": "data", "type": "file", "path": "/data/output.csv" }
+  ]
+}
