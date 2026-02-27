@@ -10,7 +10,7 @@
     {
       "name": "extract-metadata",
       "image": "dpokidov/imagemagick:latest",
-      "command": ["sh", "-c", "identify -verbose /data/image.* | head -50 > /data/metadata.txt && identify -format '{\"width\":%w,\"height\":%h,\"format\":\"%m\",\"colorspace\":\"%[colorspace]\",\"depth\":%z}' /data/image.* > /data/info.json"],
+      "command": ["sh", "-c", "identify -verbose {{input.image}} | head -50 > /data/metadata.txt && identify -format '{\"width\":%w,\"height\":%h,\"format\":\"%m\",\"colorspace\":\"%[colorspace]\",\"depth\":%z}' {{input.image}} > /data/info.json"],
       "produces": [
         { "key": "metadata", "type": "file", "path": "/data/metadata.txt" },
         { "key": "info", "type": "file", "path": "/data/info.json" }
@@ -20,7 +20,7 @@
       {
         "name": "thumbnail-small",
         "image": "dpokidov/imagemagick:latest",
-        "command": ["sh", "-c", "convert /data/image.* -resize 150x150^ -gravity center -extent 150x150 /data/thumb_small.jpg"],
+        "command": ["sh", "-c", "convert {{input.image}} -resize 150x150^ -gravity center -extent 150x150 /data/thumb_small.jpg"],
         "produces": [
           { "key": "thumb_small", "type": "file", "path": "/data/thumb_small.jpg" }
         ]
@@ -28,7 +28,7 @@
       {
         "name": "thumbnail-medium",
         "image": "dpokidov/imagemagick:latest",
-        "command": ["sh", "-c", "convert /data/image.* -resize 400x400 /data/thumb_medium.jpg"],
+        "command": ["sh", "-c", "convert {{input.image}} -resize 400x400 /data/thumb_medium.jpg"],
         "produces": [
           { "key": "thumb_medium", "type": "file", "path": "/data/thumb_medium.jpg" }
         ]
@@ -36,7 +36,7 @@
       {
         "name": "thumbnail-large",
         "image": "dpokidov/imagemagick:latest",
-        "command": ["sh", "-c", "convert /data/image.* -resize 800x800 /data/thumb_large.jpg"],
+        "command": ["sh", "-c", "convert {{input.image}} -resize 800x800 /data/thumb_large.jpg"],
         "produces": [
           { "key": "thumb_large", "type": "file", "path": "/data/thumb_large.jpg" }
         ]

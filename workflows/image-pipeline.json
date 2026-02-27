@@ -10,7 +10,7 @@
     {
       "name": "resize",
       "image": "dpokidov/imagemagick:latest",
-      "command": ["sh", "-c", "convert /data/image.* -resize 400x400 /data/resized.jpg"],
+      "command": ["sh", "-c", "convert {{input.image}} -resize 400x400 /data/resized.jpg"],
       "produces": [
         { "key": "resized", "type": "file", "path": "/data/resized.jpg" }
       ]

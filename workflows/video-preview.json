@@ -10,7 +10,7 @@
     {
       "name": "probe-video",
       "image": "linuxserver/ffmpeg:latest",
-      "command": ["sh", "-c", "ffprobe -v quiet -print_format json -show_format -show_streams /data/video.* > /data/probe.json"],
+      "command": ["sh", "-c", "ffprobe -v quiet -print_format json -show_format -show_streams {{input.video}} > /data/probe.json"],
       "produces": [
         { "key": "probe", "type": "file", "path": "/data/probe.json" }
       ]
@@ -19,7 +19,7 @@
       {
         "name": "extract-thumbnail",
         "image": "linuxserver/ffmpeg:latest",
-        "command": ["sh", "-c", "ffmpeg -i /data/video.* -ss 00:00:02 -vframes 1 -vf scale=480:-1 /data/thumbnail.jpg"],
+        "command": ["sh", "-c", "ffmpeg -i {{input.video}} -ss 00:00:02 -vframes 1 -vf scale=480:-1 /data/thumbnail.jpg"],
         "produces": [
           { "key": "thumbnail", "type": "file", "path": "/data/thumbnail.jpg" }
         ]
@@ -27,7 +27,7 @@
       {
         "name": "create-gif",
         "image": "linuxserver/ffmpeg:latest",
-        "command": ["sh", "-c", "ffmpeg -i /data/video.* -ss 00:00:01 -t 3 -vf \"fps=10,scale=320:-1:flags=lanczos\" -loop 0 /data/preview.gif"],
+        "command": ["sh", "-c", "ffmpeg -i {{input.video}} -ss 00:00:01 -t 3 -vf \"fps=10,scale=320:-1:flags=lanczos\" -loop 0 /data/preview.gif"],
         "produces": [
           { "key": "preview_gif", "type": "file", "path": "/data/preview.gif" }
         ]
