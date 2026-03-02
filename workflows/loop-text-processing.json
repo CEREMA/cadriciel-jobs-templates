@@ -17,19 +17,28 @@
   ],
   "stages": [
     {
+      "name": "trigger",
+      "isTrigger": true,
+      "triggerType": "manual",
+      "x": 100,
+      "y": 200
+    },
+    {
       "name": "init",
-      "type": "transform",
+      "isTransform": true,
       "runtime": "bun",
-      "code": "async function transform(input, context) {\n  console.log('Starting loop demo with', input.items?.length || 0, 'items');\n  return {\n    items: input.items || ['default-item-1', 'default-item-2'],\n    startedAt: new Date().toISOString()\n  };\n}"
+      "code": "async function transform(input, context) {\n  console.log('Starting loop demo with', input.items?.length || 0, 'items');\n  return {\n    items: input.items || ['default-item-1', 'default-item-2'],\n    startedAt: new Date().toISOString()\n  };\n}",
+      "x": 300,
+      "y": 200
     },
     {
       "name": "foreach-item",
-      "type": "loop",
-      "sourceExpression": "$.init.items",
-      "itemVar": "item",
-      "indexVar": "index",
-      "executionMode": "sequential",
-      "concurrency": 1
+      "isLoop": true,
+      "source": "steps.init.items",
+      "mode": "sequential",
+      "concurrency": 1,
+      "x": 500,
+      "y": 200
     },
     {
       "name": "process-item",
@@ -42,28 +51,30 @@
           "path": "/data/result-{{loop.index}}.txt"
         }
       ],
-      "timeout": 30
+      "timeout": 30,
+      "x": 500,
+      "y": 350
     },
     {
       "name": "aggregate",
-      "type": "transform",
+      "isTransform": true,
       "runtime": "bun",
-      "code": "async function transform(input, context) {\n  const loopResults = context.steps['foreach-item']?.results || [];\n  \n  return {\n    totalProcessed: loopResults.length,\n    completedAt: new Date().toISOString(),\n    duration: Date.now() - new Date(context.steps.init?.produces?.startedAt || Date.now()).getTime(),\n    results: loopResults.map((r, i) => ({\n      index: i,\n      output: r.produces?.result\n    }))\n  };\n}"
-    }
-  ],
-  "outputs": [
+      "code": "async function transform(input, context) {\n  const loopResults = context.steps['foreach-item']?.results || [];\n  \n  return {\n    totalProcessed: loopResults.length,\n    completedAt: new Date().toISOString(),\n    duration: Date.now() - new Date(context.steps.init?.produces?.startedAt || Date.now()).getTime(),\n    results: loopResults.map((r, i) => ({\n      index: i,\n      output: r.produces?.result\n    }))\n  };\n}",
+      "x": 700,
+      "y": 200
+    },
     {
       "name": "output",
-      "exports": [
-        {
-          "key": "totalProcessed",
-          "source": "aggregate.totalProcessed"
-        },
-        {
-          "key": "results",
-          "source": "aggregate.results"
-        }
-      ]
+      "isOutput": true,
+      "x": 900,
+      "y": 200
     }
+  ],
+  "edges": [
+    { "source": "trigger", "target": "init" },
+    { "source": "init", "target": "foreach-item" },
+    { "source": "foreach-item", "target": "process-item", "sourcePort": "loop-body" },
+    { "source": "foreach-item", "target": "aggregate", "sourcePort": "loop-done" },
+    { "source": "aggregate", "target": "output" }
   ]
 }

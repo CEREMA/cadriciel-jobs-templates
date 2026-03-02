@@ -23,32 +23,46 @@
   ],
   "stages": [
     {
+      "name": "trigger",
+      "isTrigger": true,
+      "triggerType": "manual",
+      "x": 100,
+      "y": 200
+    },
+    {
       "name": "process-images",
-      "type": "loop",
-      "sourceExpression": "$.images",
-      "itemVar": "imageUrl",
-      "indexVar": "i",
-      "executionMode": "parallel",
-      "concurrency": 3
+      "isLoop": true,
+      "source": "input.images",
+      "mode": "parallel",
+      "concurrency": 3,
+      "x": 300,
+      "y": 200
     },
     {
       "name": "resize-image",
       "image": "jrottenberg/ffmpeg:5-alpine",
-      "command": ["sh", "-c", "apk add --no-cache imagemagick curl >/dev/null 2>&1 && curl -sL \"{{loop.imageUrl}}\" -o /tmp/input.jpg && convert /tmp/input.jpg -resize {{vars.outputWidth}}x{{vars.outputHeight}} /data/resized-{{loop.i}}.jpg && echo \"Resized image {{loop.i}}\""],
+      "command": ["sh", "-c", "apk add --no-cache imagemagick curl >/dev/null 2>&1 && curl -sL \"{{loop.item}}\" -o /tmp/input.jpg && convert /tmp/input.jpg -resize {{vars.outputWidth}}x{{vars.outputHeight}} /data/resized-{{loop.index}}.jpg && echo \"Resized image {{loop.index}}\""],
       "produces": [
         {
           "key": "resized",
           "type": "file",
-          "path": "/data/resized-{{loop.i}}.jpg"
+          "path": "/data/resized-{{loop.index}}.jpg"
         }
       ],
-      "timeout": 120
-    }
-  ],
-  "outputs": [
+      "timeout": 120,
+      "x": 300,
+      "y": 350
+    },
     {
       "name": "output",
-      "exports": []
+      "isOutput": true,
+      "x": 550,
+      "y": 200
     }
+  ],
+  "edges": [
+    { "source": "trigger", "target": "process-images" },
+    { "source": "process-images", "target": "resize-image", "sourcePort": "loop-body" },
+    { "source": "process-images", "target": "output", "sourcePort": "loop-done" }
   ]
 }

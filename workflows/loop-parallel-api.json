@@ -18,53 +18,64 @@
   ],
   "stages": [
     {
+      "name": "trigger",
+      "isTrigger": true,
+      "triggerType": "manual",
+      "x": 100,
+      "y": 200
+    },
+    {
       "name": "prepare",
-      "type": "transform",
+      "isTransform": true,
       "runtime": "bun",
-      "code": "async function transform(input, context) {\n  const userIds = input.userIds || [1, 2, 3];\n  console.log(`Will fetch ${userIds.length} users in parallel (max ${context.vars.maxConcurrency} concurrent)`);\n  \n  return {\n    userIds: userIds,\n    apiUrl: context.vars.apiBaseUrl\n  };\n}"
+      "code": "async function transform(input, context) {\n  const userIds = input.userIds || [1, 2, 3];\n  console.log(`Will fetch ${userIds.length} users in parallel (max ${context.vars.maxConcurrency} concurrent)`);\n  \n  return {\n    userIds: userIds,\n    apiUrl: context.vars.apiBaseUrl\n  };\n}",
+      "x": 300,
+      "y": 200
     },
     {
       "name": "fetch-users",
-      "type": "loop",
-      "sourceExpression": "$.prepare.userIds",
-      "itemVar": "userId",
-      "indexVar": "i",
-      "executionMode": "parallel",
-      "concurrency": 3
+      "isLoop": true,
+      "source": "steps.prepare.userIds",
+      "mode": "parallel",
+      "concurrency": 3,
+      "x": 500,
+      "y": 200
     },
     {
       "name": "fetch-user-data",
       "image": "curlimages/curl:latest",
-      "command": ["sh", "-c", "curl -s {{vars.apiBaseUrl}}/users/{{loop.userId}} > /data/user-{{loop.userId}}.json && cat /data/user-{{loop.userId}}.json"],
+      "command": ["sh", "-c", "curl -s {{vars.apiBaseUrl}}/users/{{loop.item}} > /data/user-{{loop.item}}.json && cat /data/user-{{loop.item}}.json"],
       "produces": [
         {
           "key": "userData",
           "type": "file",
-          "path": "/data/user-{{loop.userId}}.json"
+          "path": "/data/user-{{loop.item}}.json"
         }
       ],
-      "timeout": 30
+      "timeout": 30,
+      "x": 500,
+      "y": 350
     },
     {
       "name": "merge-results",
-      "type": "transform",
+      "isTransform": true,
       "runtime": "bun",
-      "code": "async function transform(input, context) {\n  const loopResults = context.steps['fetch-users']?.results || [];\n  \n  // Parse all user data\n  const users = loopResults\n    .map(r => {\n      try {\n        return JSON.parse(r.logs || '{}');\n      } catch {\n        return null;\n      }\n    })\n    .filter(Boolean);\n  \n  console.log(`Successfully fetched ${users.length} users`);\n  \n  return {\n    count: users.length,\n    users: users.map(u => ({\n      id: u.id,\n      name: u.name,\n      email: u.email,\n      company: u.company?.name\n    }))\n  };\n}"
-    }
-  ],
-  "outputs": [
+      "code": "async function transform(input, context) {\n  const loopResults = context.steps['fetch-users']?.results || [];\n  \n  // Parse all user data\n  const users = loopResults\n    .map(r => {\n      try {\n        return JSON.parse(r.logs || '{}');\n      } catch {\n        return null;\n      }\n    })\n    .filter(Boolean);\n  \n  console.log(`Successfully fetched ${users.length} users`);\n  \n  return {\n    count: users.length,\n    users: users.map(u => ({\n      id: u.id,\n      name: u.name,\n      email: u.email,\n      company: u.company?.name\n    }))\n  };\n}",
+      "x": 700,
+      "y": 200
+    },
     {
       "name": "output",
-      "exports": [
-        {
-          "key": "userCount",
-          "source": "merge-results.count"
-        },
-        {
-          "key": "users",
-          "source": "merge-results.users"
-        }
-      ]
+      "isOutput": true,
+      "x": 900,
+      "y": 200
     }
+  ],
+  "edges": [
+    { "source": "trigger", "target": "prepare" },
+    { "source": "prepare", "target": "fetch-users" },
+    { "source": "fetch-users", "target": "fetch-user-data", "sourcePort": "loop-body" },
+    { "source": "fetch-users", "target": "merge-results", "sourcePort": "loop-done" },
+    { "source": "merge-results", "target": "output" }
   ]
 }
