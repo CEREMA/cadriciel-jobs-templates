@@ -23,6 +23,14 @@
   ],
   "stages": [
     {
+      "name": "Trigger",
+      "type": "trigger",
+      "isTrigger": true,
+      "triggerType": "manual",
+      "x": 100,
+      "y": 200
+    },
+    {
       "name": "process-images",
       "isLoop": true,
       "source": "input.images",
@@ -45,6 +53,13 @@
       "timeout": 120,
       "x": 300,
       "y": 350
+    },
+    {
+      "name": "Output",
+      "type": "output",
+      "isOutput": true,
+      "x": 500,
+      "y": 200
     }
   ],
   "edges": [

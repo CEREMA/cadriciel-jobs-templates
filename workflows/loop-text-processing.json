@@ -17,6 +17,14 @@
   ],
   "stages": [
     {
+      "name": "Trigger",
+      "type": "trigger",
+      "isTrigger": true,
+      "triggerType": "manual",
+      "x": 100,
+      "y": 200
+    },
+    {
       "name": "init",
       "isTransform": true,
       "runtime": "bun",
@@ -54,6 +62,13 @@
       "runtime": "bun",
       "code": "async function transform(input, context) {\n  const loopResults = context.steps['foreach-item']?.results || [];\n  \n  return {\n    totalProcessed: loopResults.length,\n    completedAt: new Date().toISOString(),\n    duration: Date.now() - new Date(context.steps.init?.produces?.startedAt || Date.now()).getTime(),\n    results: loopResults.map((r, i) => ({\n      index: i,\n      output: r.produces?.result\n    }))\n  };\n}",
       "x": 700,
+      "y": 200
+    },
+    {
+      "name": "Output",
+      "type": "output",
+      "isOutput": true,
+      "x": 900,
       "y": 200
     }
   ],

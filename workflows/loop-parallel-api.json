@@ -18,6 +18,14 @@
   ],
   "stages": [
     {
+      "name": "Trigger",
+      "type": "trigger",
+      "isTrigger": true,
+      "triggerType": "manual",
+      "x": 100,
+      "y": 200
+    },
+    {
       "name": "prepare",
       "isTransform": true,
       "runtime": "bun",
@@ -55,6 +63,13 @@
       "runtime": "bun",
       "code": "async function transform(input, context) {\n  const loopResults = context.steps['fetch-users']?.results || [];\n  \n  // Parse all user data\n  const users = loopResults\n    .map(r => {\n      try {\n        return JSON.parse(r.logs || '{}');\n      } catch {\n        return null;\n      }\n    })\n    .filter(Boolean);\n  \n  console.log(`Successfully fetched ${users.length} users`);\n  \n  return {\n    count: users.length,\n    users: users.map(u => ({\n      id: u.id,\n      name: u.name,\n      email: u.email,\n      company: u.company?.name\n    }))\n  };\n}",
       "x": 700,
+      "y": 200
+    },
+    {
+      "name": "Output",
+      "type": "output",
+      "isOutput": true,
+      "x": 900,
       "y": 200
     }
   ],

@@ -15,6 +15,14 @@
   ],
   "stages": [
     {
+      "name": "Trigger",
+      "type": "trigger",
+      "isTrigger": true,
+      "triggerType": "manual",
+      "x": 100,
+      "y": 200
+    },
+    {
       "name": "foreach-item",
       "isLoop": true,
       "source": "input.items",
@@ -37,6 +45,13 @@
       "timeout": 30,
       "x": 300,
       "y": 350
+    },
+    {
+      "name": "Output",
+      "type": "output",
+      "isOutput": true,
+      "x": 500,
+      "y": 200
     }
   ],
   "edges": [
