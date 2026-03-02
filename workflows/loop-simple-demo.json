@@ -15,13 +15,6 @@
   ],
   "stages": [
     {
-      "name": "trigger",
-      "isTrigger": true,
-      "triggerType": "manual",
-      "x": 100,
-      "y": 200
-    },
-    {
       "name": "foreach-item",
       "isLoop": true,
       "source": "input.items",
@@ -44,17 +37,11 @@
       "timeout": 30,
       "x": 300,
       "y": 350
-    },
-    {
-      "name": "output",
-      "isOutput": true,
-      "x": 550,
-      "y": 200
     }
   ],
   "edges": [
-    { "source": "trigger", "target": "foreach-item" },
+    { "source": "Trigger", "target": "foreach-item" },
     { "source": "foreach-item", "target": "echo-item", "sourcePort": "loop-body" },
-    { "source": "foreach-item", "target": "output", "sourcePort": "loop-done" }
+    { "source": "foreach-item", "target": "Output", "sourcePort": "loop-done" }
   ]
 }

@@ -17,13 +17,6 @@
   ],
   "stages": [
     {
-      "name": "trigger",
-      "isTrigger": true,
-      "triggerType": "manual",
-      "x": 100,
-      "y": 200
-    },
-    {
       "name": "init",
       "isTransform": true,
       "runtime": "bun",
@@ -62,19 +55,13 @@
       "code": "async function transform(input, context) {\n  const loopResults = context.steps['foreach-item']?.results || [];\n  \n  return {\n    totalProcessed: loopResults.length,\n    completedAt: new Date().toISOString(),\n    duration: Date.now() - new Date(context.steps.init?.produces?.startedAt || Date.now()).getTime(),\n    results: loopResults.map((r, i) => ({\n      index: i,\n      output: r.produces?.result\n    }))\n  };\n}",
       "x": 700,
       "y": 200
-    },
-    {
-      "name": "output",
-      "isOutput": true,
-      "x": 900,
-      "y": 200
     }
   ],
   "edges": [
-    { "source": "trigger", "target": "init" },
+    { "source": "Trigger", "target": "init" },
     { "source": "init", "target": "foreach-item" },
     { "source": "foreach-item", "target": "process-item", "sourcePort": "loop-body" },
     { "source": "foreach-item", "target": "aggregate", "sourcePort": "loop-done" },
-    { "source": "aggregate", "target": "output" }
+    { "source": "aggregate", "target": "Output" }
   ]
 }
