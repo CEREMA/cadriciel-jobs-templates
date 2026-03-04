@@ -43,7 +43,7 @@
       "id": "concat",
       "name": "concat",
       "image": "jrottenberg/ffmpeg:5-alpine",
-      "command": ["sh", "-c", "echo -e \"file clip1.mp4\\nfile clip2.mp4\" > /data/list.txt && cd /data && ffmpeg -f concat -safe 0 -i list.txt -c copy -y output.mp4"],
+      "command": ["sh", "-c", "echo -e \"file {{steps.clip1.clip1}}\\nfile {{steps.clip2.clip2}}\" > /data/list.txt && ffmpeg -f concat -safe 0 -i /data/list.txt -c copy -y /data/output.mp4"],
       "produces": [
         { "key": "video", "type": "file", "path": "/data/output.mp4" }
       ],
