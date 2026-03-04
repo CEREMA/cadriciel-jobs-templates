@@ -1,56 +1,96 @@
 {
   "id": "image-analysis",
-  "name": "image-analysis",
-  "description": "Analyse une image: extrait les métadonnées, crée des miniatures, et génère un rapport JSON",
+  "name": "Image Analysis",
+  "description": "Analyse une image: extrait les métadonnées, crée des miniatures en parallèle, et génère un rapport JSON",
   "icon": "image",
   "input": [
     { "key": "image", "type": "file", "description": "Image à analyser (JPG, PNG, etc.)" }
   ],
   "stages": [
     {
+      "id": "trigger",
+      "name": "Trigger",
+      "type": "trigger",
+      "isTrigger": true,
+      "triggerType": "manual",
+      "x": 100,
+      "y": 300
+    },
+    {
+      "id": "extract-metadata",
       "name": "extract-metadata",
       "image": "dpokidov/imagemagick:latest",
       "command": ["sh", "-c", "identify -verbose {{input.image}} | head -50 > /data/metadata.txt && identify -format '{\"width\":%w,\"height\":%h,\"format\":\"%m\",\"colorspace\":\"%[colorspace]\",\"depth\":%z}' {{input.image}} > /data/info.json"],
       "produces": [
         { "key": "metadata", "type": "file", "path": "/data/metadata.txt" },
         { "key": "info", "type": "file", "path": "/data/info.json" }
-      ]
+      ],
+      "x": 300,
+      "y": 300
     },
-    [
-      {
-        "name": "thumbnail-small",
-        "image": "dpokidov/imagemagick:latest",
-        "command": ["sh", "-c", "convert {{input.image}} -resize 150x150^ -gravity center -extent 150x150 /data/thumb_small.jpg"],
-        "produces": [
-          { "key": "thumb_small", "type": "file", "path": "/data/thumb_small.jpg" }
-        ]
-      },
-      {
-        "name": "thumbnail-medium",
-        "image": "dpokidov/imagemagick:latest",
-        "command": ["sh", "-c", "convert {{input.image}} -resize 400x400 /data/thumb_medium.jpg"],
-        "produces": [
-          { "key": "thumb_medium", "type": "file", "path": "/data/thumb_medium.jpg" }
-        ]
-      },
-      {
-        "name": "thumbnail-large",
-        "image": "dpokidov/imagemagick:latest",
-        "command": ["sh", "-c", "convert {{input.image}} -resize 800x800 /data/thumb_large.jpg"],
-        "produces": [
-          { "key": "thumb_large", "type": "file", "path": "/data/thumb_large.jpg" }
-        ]
-      }
-    ],
     {
+      "id": "thumbnail-small",
+      "name": "thumbnail-small",
+      "image": "dpokidov/imagemagick:latest",
+      "command": ["sh", "-c", "convert {{input.image}} -resize 150x150^ -gravity center -extent 150x150 /data/thumb_small.jpg"],
+      "produces": [
+        { "key": "thumb_small", "type": "file", "path": "/data/thumb_small.jpg" }
+      ],
+      "x": 500,
+      "y": 150
+    },
+    {
+      "id": "thumbnail-medium",
+      "name": "thumbnail-medium",
+      "image": "dpokidov/imagemagick:latest",
+      "command": ["sh", "-c", "convert {{input.image}} -resize 400x400 /data/thumb_medium.jpg"],
+      "produces": [
+        { "key": "thumb_medium", "type": "file", "path": "/data/thumb_medium.jpg" }
+      ],
+      "x": 500,
+      "y": 300
+    },
+    {
+      "id": "thumbnail-large",
+      "name": "thumbnail-large",
+      "image": "dpokidov/imagemagick:latest",
+      "command": ["sh", "-c", "convert {{input.image}} -resize 800x800 /data/thumb_large.jpg"],
+      "produces": [
+        { "key": "thumb_large", "type": "file", "path": "/data/thumb_large.jpg" }
+      ],
+      "x": 500,
+      "y": 450
+    },
+    {
+      "id": "aggregate-results",
       "name": "aggregate-results",
-      "type": "transform",
+      "isTransform": true,
       "runtime": "bun",
       "code": "async function transform(input, context) {\n  // Récupérer les infos de l'image depuis les steps précédents\n  const info = context.steps['extract-metadata']?.produces || [];\n  \n  // Calculer les tailles des miniatures\n  const thumbnails = {\n    small: { width: 150, height: 150, url: `${context.executionId}/thumb_small.jpg` },\n    medium: { width: 400, height: 400, url: `${context.executionId}/thumb_medium.jpg` },\n    large: { width: 800, height: 800, url: `${context.executionId}/thumb_large.jpg` }\n  };\n  \n  // Générer le rapport\n  const report = {\n    processedAt: new Date().toISOString(),\n    executionId: context.executionId,\n    workflowName: context.workflowName,\n    originalImage: input.files?.[0]?.originalName || 'unknown',\n    thumbnails,\n    status: 'completed',\n    message: `Image analysée avec succès. 3 miniatures générées.`\n  };\n  \n  return report;\n}",
       "produces": [
         { "key": "report", "type": "json" }
-      ]
+      ],
+      "x": 700,
+      "y": 300
+    },
+    {
+      "id": "output",
+      "name": "Output",
+      "type": "output",
+      "isOutput": true,
+      "x": 900,
+      "y": 300
     }
+  ],
+  "edges": [
+    { "source": "trigger", "target": "extract-metadata" },
+    { "source": "extract-metadata", "target": "thumbnail-small" },
+    { "source": "extract-metadata", "target": "thumbnail-medium" },
+    { "source": "extract-metadata", "target": "thumbnail-large" },
+    { "source": "thumbnail-small", "target": "aggregate-results" },
+    { "source": "thumbnail-medium", "target": "aggregate-results" },
+    { "source": "thumbnail-large", "target": "aggregate-results" },
+    { "source": "aggregate-results", "target": "output" }
   ],
   "outputs": [
     {

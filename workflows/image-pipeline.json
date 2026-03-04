@@ -1,46 +1,81 @@
 {
   "id": "image-pipeline",
   "name": "Image Pipeline",
-  "description": "Parallel image processing: thumbnail + grayscale",
+  "description": "Parallel image processing: resize then thumbnail + grayscale in parallel",
   "icon": "git-branch",
   "input": [
     { "key": "image", "type": "file" }
   ],
   "stages": [
     {
+      "id": "trigger",
+      "name": "Trigger",
+      "type": "trigger",
+      "isTrigger": true,
+      "triggerType": "manual",
+      "x": 100,
+      "y": 250
+    },
+    {
+      "id": "resize",
       "name": "resize",
       "image": "dpokidov/imagemagick:latest",
       "command": ["sh", "-c", "convert {{input.image}} -resize 400x400 /data/resized.jpg"],
       "produces": [
         { "key": "resized", "type": "file", "path": "/data/resized.jpg" }
-      ]
+      ],
+      "x": 300,
+      "y": 250
     },
-    [
-      {
-        "name": "thumbnail",
-        "image": "dpokidov/imagemagick:latest",
-        "command": ["sh", "-c", "convert /data/resized.jpg -resize 100x100 /data/thumbnail.jpg"],
-        "produces": [
-          { "key": "thumbnail", "type": "file", "path": "/data/thumbnail.jpg" }
-        ]
-      },
-      {
-        "name": "grayscale",
-        "image": "dpokidov/imagemagick:latest",
-        "command": ["sh", "-c", "convert /data/resized.jpg -colorspace Gray /data/grayscale.jpg"],
-        "produces": [
-          { "key": "grayscale", "type": "file", "path": "/data/grayscale.jpg" }
-        ]
-      }
-    ],
     {
+      "id": "thumbnail",
+      "name": "thumbnail",
+      "image": "dpokidov/imagemagick:latest",
+      "command": ["sh", "-c", "convert /data/resized.jpg -resize 100x100 /data/thumbnail.jpg"],
+      "produces": [
+        { "key": "thumbnail", "type": "file", "path": "/data/thumbnail.jpg" }
+      ],
+      "x": 500,
+      "y": 150
+    },
+    {
+      "id": "grayscale",
+      "name": "grayscale",
+      "image": "dpokidov/imagemagick:latest",
+      "command": ["sh", "-c", "convert /data/resized.jpg -colorspace Gray /data/grayscale.jpg"],
+      "produces": [
+        { "key": "grayscale", "type": "file", "path": "/data/grayscale.jpg" }
+      ],
+      "x": 500,
+      "y": 350
+    },
+    {
+      "id": "info",
       "name": "info",
       "image": "dpokidov/imagemagick:latest",
       "command": ["sh", "-c", "identify /data/thumbnail.jpg /data/grayscale.jpg > /data/info.txt"],
       "produces": [
         { "key": "info", "type": "file", "path": "/data/info.txt" }
-      ]
+      ],
+      "x": 700,
+      "y": 250
+    },
+    {
+      "id": "output",
+      "name": "Output",
+      "type": "output",
+      "isOutput": true,
+      "x": 900,
+      "y": 250
     }
+  ],
+  "edges": [
+    { "source": "trigger", "target": "resize" },
+    { "source": "resize", "target": "thumbnail" },
+    { "source": "resize", "target": "grayscale" },
+    { "source": "thumbnail", "target": "info" },
+    { "source": "grayscale", "target": "info" },
+    { "source": "info", "target": "output" }
   ],
   "outputs": [
     {
