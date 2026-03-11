@@ -1,0 +1,55 @@
+{
+  "id": "code-python",
+  "name": "Code Python",
+  "description": "Exécutez du code Python 3.12. Accédez aux données d'entrée via 'input' (dict) et utilisez 'print()' ou 'return' pour le résultat.",
+  "category": "compute",
+  "image": "python:3.12-alpine",
+  "icon": "python",
+  "color": "#3776ab",
+  "isCodeNode": true,
+  "codeLanguage": "python",
+  "codeTemplate": "# Les données d'entrée sont dans 'input' (dict)\n# Utilisez print() pour afficher ou return pour retourner\n\nimport json\nfrom datetime import datetime\n\nresult = {\n    'message': 'Hello from Python!',\n    'timestamp': datetime.now().isoformat(),\n    'input': input\n}\n\nprint(json.dumps(result))",
+  "input": [
+    {
+      "name": "code",
+      "type": "code",
+      "label": "Code Python",
+      "language": "python",
+      "required": true
+    },
+    {
+      "name": "dependencies",
+      "type": "textarea",
+      "label": "Dépendances pip (une par ligne)",
+      "placeholder": "requests\npandas\nnumpy",
+      "required": false
+    }
+  ],
+  "env": {
+    "PYTHONUNBUFFERED": "1"
+  },
+  "produces": [
+    {
+      "name": "result",
+      "type": "json",
+      "description": "Résultat affiché par le script (JSON)"
+    }
+  ],
+  "examples": [
+    {
+      "name": "Appel API REST",
+      "code": "import requests\nimport json\n\nresponse = requests.get('https://api.example.com/data')\nprint(json.dumps(response.json()))",
+      "dependencies": "requests"
+    },
+    {
+      "name": "Traitement Pandas",
+      "code": "import pandas as pd\nimport json\n\ndf = pd.DataFrame(input['items'])\ngrouped = df.groupby('category').size().to_dict()\nprint(json.dumps({'grouped': grouped}))",
+      "dependencies": "pandas"
+    },
+    {
+      "name": "Analyse de texte",
+      "code": "import re\nimport json\n\ntext = input.get('text', '')\nwords = len(re.findall(r'\\w+', text))\nprint(json.dumps({'word_count': words}))",
+      "dependencies": ""
+    }
+  ]
+}

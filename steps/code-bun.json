@@ -1,0 +1,55 @@
+{
+  "id": "code-bun",
+  "name": "Code Bun",
+  "description": "Exécutez du code TypeScript/JavaScript avec Bun (ultra-rapide). Accédez aux données d'entrée via 'input' et retournez le résultat.",
+  "category": "compute",
+  "image": "oven/bun:latest",
+  "icon": "javascript",
+  "color": "#fbf0df",
+  "isCodeNode": true,
+  "codeLanguage": "typescript",
+  "codeTemplate": "// Les données d'entrée sont dans 'input'\n// Retournez le résultat avec 'return'\n// Bun supporte TypeScript nativement!\n\ninterface Result {\n  message: string;\n  timestamp: string;\n  input: unknown;\n}\n\nconst result: Result = {\n  message: 'Hello from Bun!',\n  timestamp: new Date().toISOString(),\n  input\n};\n\nreturn result;",
+  "input": [
+    {
+      "name": "code",
+      "type": "code",
+      "label": "Code TypeScript/JavaScript",
+      "language": "typescript",
+      "required": true
+    },
+    {
+      "name": "dependencies",
+      "type": "textarea",
+      "label": "Dépendances (une par ligne)",
+      "placeholder": "axios\nlodash\nzod",
+      "required": false
+    }
+  ],
+  "env": {
+    "BUN_ENV": "production"
+  },
+  "produces": [
+    {
+      "name": "result",
+      "type": "json",
+      "description": "Résultat retourné par le script"
+    }
+  ],
+  "examples": [
+    {
+      "name": "Fetch API (natif)",
+      "code": "const response = await fetch('https://api.example.com/data');\nconst data = await response.json();\nreturn data;",
+      "dependencies": ""
+    },
+    {
+      "name": "Lecture fichier (Bun API)",
+      "code": "const file = Bun.file('/data/input.json');\nconst content = await file.json();\nreturn content;",
+      "dependencies": ""
+    },
+    {
+      "name": "Validation avec Zod",
+      "code": "import { z } from 'zod';\n\nconst schema = z.object({\n  name: z.string(),\n  age: z.number()\n});\n\nconst validated = schema.parse(input);\nreturn { valid: true, data: validated };",
+      "dependencies": "zod"
+    }
+  ]
+}

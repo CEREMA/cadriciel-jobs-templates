@@ -1,0 +1,55 @@
+{
+  "id": "code-nodejs",
+  "name": "Code Node.js",
+  "description": "Exécutez du code JavaScript/TypeScript avec Node.js 20. Accédez aux données d'entrée via 'input' et retournez le résultat.",
+  "category": "compute",
+  "image": "node:20-alpine",
+  "icon": "javascript",
+  "color": "#68a063",
+  "isCodeNode": true,
+  "codeLanguage": "javascript",
+  "codeTemplate": "// Les données d'entrée sont dans 'input'\n// Retournez le résultat avec 'return' ou 'console.log'\n\nconst result = {\n  message: 'Hello from Node.js!',\n  timestamp: new Date().toISOString(),\n  input: input\n};\n\nreturn result;",
+  "input": [
+    {
+      "name": "code",
+      "type": "code",
+      "label": "Code JavaScript",
+      "language": "javascript",
+      "required": true
+    },
+    {
+      "name": "dependencies",
+      "type": "textarea",
+      "label": "Dépendances npm (une par ligne)",
+      "placeholder": "axios\nlodash\ndayjs",
+      "required": false
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "produces": [
+    {
+      "name": "result",
+      "type": "json",
+      "description": "Résultat retourné par le script"
+    }
+  ],
+  "examples": [
+    {
+      "name": "Appel API REST",
+      "code": "const axios = require('axios');\n\nconst response = await axios.get('https://api.example.com/data');\nreturn response.data;",
+      "dependencies": "axios"
+    },
+    {
+      "name": "Transformation de données",
+      "code": "const _ = require('lodash');\n\nconst grouped = _.groupBy(input.items, 'category');\nreturn { grouped, count: input.items.length };",
+      "dependencies": "lodash"
+    },
+    {
+      "name": "Lecture de fichier",
+      "code": "const fs = require('fs');\n\nconst content = fs.readFileSync('/data/input.json', 'utf8');\nreturn JSON.parse(content);",
+      "dependencies": ""
+    }
+  ]
+}
