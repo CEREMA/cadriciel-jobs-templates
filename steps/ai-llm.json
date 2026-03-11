@@ -1,0 +1,109 @@
+{
+  "id": "ai-llm",
+  "name": "AI / LLM",
+  "description": "Appels vers des modèles de langage (OpenAI, Anthropic, Ollama, Mistral)",
+  "category": "ai",
+  "image": "node:20-alpine",
+  "icon": "custom",
+  "color": "#8b5cf6",
+  "env": {
+    "OPENAI_API_KEY": "",
+    "ANTHROPIC_API_KEY": "",
+    "MISTRAL_API_KEY": "",
+    "OLLAMA_HOST": "http://localhost:11434",
+    "LLM_PROVIDER": "openai",
+    "LLM_MODEL": "gpt-4-turbo",
+    "LLM_TEMPERATURE": "0.7",
+    "LLM_MAX_TOKENS": "2048"
+  },
+  "defaultCommands": [
+    "npm install openai@4 @anthropic-ai/sdk@0.30 --silent 2>/dev/null",
+    "node -e \"",
+    "const provider = process.env.LLM_PROVIDER || 'openai';",
+    "const prompt = process.env.LLM_PROMPT || 'Hello!';",
+    "",
+    "async function callLLM() {",
+    "  if (provider === 'openai') {",
+    "    const OpenAI = require('openai');",
+    "    const client = new OpenAI();",
+    "    const response = await client.chat.completions.create({",
+    "      model: process.env.LLM_MODEL || 'gpt-4-turbo',",
+    "      messages: [{ role: 'user', content: prompt }],",
+    "      temperature: parseFloat(process.env.LLM_TEMPERATURE || '0.7'),",
+    "      max_tokens: parseInt(process.env.LLM_MAX_TOKENS || '2048')",
+    "    });",
+    "    console.log(response.choices[0].message.content);",
+    "  } else if (provider === 'anthropic') {",
+    "    const Anthropic = require('@anthropic-ai/sdk');",
+    "    const client = new Anthropic();",
+    "    const response = await client.messages.create({",
+    "      model: process.env.LLM_MODEL || 'claude-3-5-sonnet-latest',",
+    "      max_tokens: parseInt(process.env.LLM_MAX_TOKENS || '2048'),",
+    "      messages: [{ role: 'user', content: prompt }]",
+    "    });",
+    "    console.log(response.content[0].text);",
+    "  }",
+    "}",
+    "callLLM();",
+    "\""
+  ],
+  "examples": [
+    {
+      "name": "Simple prompt (OpenAI)",
+      "command": "LLM_PROVIDER=openai LLM_PROMPT='Explique le concept de recursivité en 3 phrases' node llm.js"
+    },
+    {
+      "name": "Simple prompt (Anthropic)",
+      "command": "LLM_PROVIDER=anthropic LLM_PROMPT='Résume ce texte: ...' node llm.js"
+    },
+    {
+      "name": "Analyse de fichier",
+      "command": "LLM_PROMPT=\"Analyse ce JSON: $(cat /data/input.json)\" node llm.js > /data/analysis.txt"
+    },
+    {
+      "name": "Génération de code",
+      "command": "LLM_PROMPT='Génère une fonction Python qui calcule fibonacci' LLM_MODEL=gpt-4 node llm.js > /data/code.py"
+    },
+    {
+      "name": "Traduction",
+      "command": "LLM_PROMPT=\"Traduis en anglais: $(cat /data/french.txt)\" node llm.js > /data/english.txt"
+    },
+    {
+      "name": "Extraction de données",
+      "command": "LLM_PROMPT='Extrais les emails de ce texte en JSON: ...' LLM_TEMPERATURE=0 node llm.js"
+    },
+    {
+      "name": "Ollama (local)",
+      "command": "curl -s $OLLAMA_HOST/api/generate -d '{\"model\":\"llama3\",\"prompt\":\"Hello\",\"stream\":false}' | jq -r '.response'"
+    }
+  ],
+  "input": [
+    {
+      "name": "prompt",
+      "type": "textarea",
+      "label": "Prompt",
+      "description": "Le texte à envoyer au LLM",
+      "required": true
+    },
+    {
+      "name": "provider",
+      "type": "select",
+      "label": "Provider",
+      "options": ["openai", "anthropic", "ollama", "mistral"],
+      "default": "openai"
+    },
+    {
+      "name": "model",
+      "type": "text",
+      "label": "Modèle",
+      "description": "Ex: gpt-4-turbo, claude-3-5-sonnet-latest, llama3"
+    }
+  ],
+  "produces": [
+    {
+      "name": "response",
+      "type": "text",
+      "description": "Réponse du LLM"
+    }
+  ]
+}
